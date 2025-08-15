@@ -7,7 +7,7 @@ export default function HomePage() {
 
     // Fetch boards from backend
     useEffect(() => {
-        fetch("http://localhost:5000/boards")
+        fetch("https://whiteboard-backend-27jg.onrender.com/boards")
             .then((res) => res.json())
             .then((data) => setBoards(data))
             .catch((err) => console.error("Error fetching boards:", err));
@@ -18,7 +18,7 @@ export default function HomePage() {
         if (!name) return;
 
         try {
-            const res = await fetch("http://localhost:5000/boards", {
+            const res = await fetch("https://whiteboard-backend-27jg.onrender.com/boards", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name }),

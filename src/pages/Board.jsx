@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000"); // change to your backend URL
+const socket = io("https://whiteboard-backend-27jg.onrender.com"); // change to your backend URL
 
 export default function Whiteboard() {
     const { id: boardId } = useParams(); // board ID from URL
