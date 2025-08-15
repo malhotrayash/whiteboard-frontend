@@ -4,7 +4,7 @@ import Board from "./pages/Board";
 
 export default function App() {
   return (
-    <Router>
+    <Router basename="/whiteboard-frontend">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/board/:id" element={<Board />} />
