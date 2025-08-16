@@ -1,16 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 
 const socket = io("https://whiteboard-backend-27jg.onrender.com"); // change to your backend URL
 
 export default function Whiteboard() {
     const { id: boardId } = useParams(); // board ID from URL
+    const navigate = useNavigate();
     const canvasRef = useRef(null);
     const ctxRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [brushColor, setBrushColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(5);
+
+    const lastPos = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -75,8 +78,6 @@ export default function Whiteboard() {
         lastPos.current = { x: offsetX, y: offsetY };
     };
 
-    const lastPos = useRef({ x: 0, y: 0 });
-
     const finishDrawing = () => {
         setIsDrawing(false);
     };
@@ -101,21 +102,46 @@ export default function Whiteboard() {
 
     return (
         <div>
-            <div style={{ padding: "10px", background: "#eee" }}>
+            <div style={{ padding: "10px", background: "#eee", display: "flex", alignItems: "center", gap: "10px" }}>
+                {/* Back button */}
+                <button
+                    onClick={() => navigate("/")}
+                    style={{
+                        padding: "8px 12px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer"
+                    }}
+                >
+                    ← Back to Home
+                </button>
+
+                {/* Brush color */}
                 <input
                     type="color"
                     value={brushColor}
                     onChange={(e) => setBrushColor(e.target.value)}
                 />
-                <input
-                    type="number"
-                    value={brushSize}
-                    min="1"
-                    max="50"
-                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                />
+
+                {/* Brush size slider */}
+                <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    Brush Size:
+                    <input
+                        type="range"
+                        min="1"
+                        max="50"
+                        value={brushSize}
+                        onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                    />
+                    <span>{brushSize}</span>
+                </label>
+
+                {/* Clear button */}
                 <button onClick={clearBoard}>Clear Board</button>
             </div>
+
             <canvas
                 ref={canvasRef}
                 style={{ border: "1px solid black" }}
