@@ -1,26 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 
-const socket = io("https://whiteboard-backend-27jg.onrender.com"); // change to your backend URL
+const socket = io("https://whiteboard-backend-27jg.onrender.com");
 
 export default function Whiteboard() {
-    const { id: boardId } = useParams(); // board ID from URL
+    const { id: boardId } = useParams();
     const canvasRef = useRef(null);
     const ctxRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [brushColor, setBrushColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(5);
+    const [username, setUsername] = useState("");
+    const [activeUsers, setActiveUsers] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const canvas = canvasRef.current;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.lineCap = "round";
-        ctx.strokeStyle = brushColor;
-        ctx.lineWidth = brushSize;
-        ctxRef.current = ctx;
+        let name = prompt("Enter your username:");
+        if (!name) name = "Anonymous";
+        setUsername(name);
+
+        socket.emit("join-board", { boardId, username: name });
+
+        socket.on("active-users", (users) => {
+            setActiveUsers(users);
+        });
 
         // Join board room
         socket.emit("join-board", boardId);
@@ -43,6 +47,8 @@ export default function Whiteboard() {
         });
 
         return () => {
+            socket.emit("leave-board", { boardId, username: name });
+            socket.off("active-users");
             socket.off("init");
             socket.off("draw-segment");
             socket.off("clear-board");
@@ -101,20 +107,26 @@ export default function Whiteboard() {
 
     return (
         <div>
-            <div style={{ padding: "10px", background: "#eee" }}>
+            <div style={{ padding: "10px", background: "#eee", display: "flex", alignItems: "center", gap: "10px" }}>
+                <button onClick={() => navigate("/")}>Home</button>
                 <input
                     type="color"
                     value={brushColor}
                     onChange={(e) => setBrushColor(e.target.value)}
                 />
                 <input
-                    type="number"
-                    value={brushSize}
+                    type="range"
                     min="1"
                     max="50"
+                    value={brushSize}
                     onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                    style={{ width: "100px" }}
                 />
                 <button onClick={clearBoard}>Clear Board</button>
+                <span style={{ marginLeft: "auto" }}>You: {username}</span>
+            </div>
+            <div style={{ padding: "10px", background: "#fafafa", borderBottom: "1px solid #ddd" }}>
+                <strong>Active Users:</strong> {activeUsers.join(", ")}
             </div>
             <canvas
                 ref={canvasRef}
